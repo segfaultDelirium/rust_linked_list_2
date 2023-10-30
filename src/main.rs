@@ -1,21 +1,21 @@
 #[derive(Clone, Debug)]
-struct List {
-    head: Option<Box<Node>>,
+struct List<T: Clone + Copy> {
+    head: Option<Box<Node<T>>>,
 }
 
 #[derive(Clone, Debug)]
-struct Node {
-    elem: i32,
-    next: Option<Box<Node>>,
+struct Node<T: Clone + Copy> {
+    elem: T,
+    next: Option<Box<Node<T>>>,
 }
 
-impl List {
+impl<T: Clone + Copy> List<T> {
     fn new() -> Self {
         List { head: None }
     }
 
-    fn push(&self, elem: i32) -> Self {
-        let old_list_clone: List = (*self).clone();
+    fn push(&self, elem: T) -> Self {
+        let old_list_clone: List<T> = (*self).clone();
         let new_next2 = old_list_clone.head;
         let new_head_node = Node {
             elem,
@@ -26,7 +26,7 @@ impl List {
         }
     }
 
-    fn head_tail(&self) -> (Option<i32>, Self) {
+    fn head_tail(&self) -> (Option<T>, Self) {
         let head = self.head.as_ref().map(|x| x.elem);
         let tail_head = match self.head.as_ref().map(|x| x.next.clone()) {
             Some(v) => v,
@@ -36,8 +36,8 @@ impl List {
         (head, tail)
     }
 
-    fn to_vec(&self) -> Vec<i32> {
-        fn to_vec_rec(list: &List, acc: Vec<i32>) -> Vec<i32> {
+    fn to_vec(&self) -> Vec<T> {
+        fn to_vec_rec<T: Clone + Copy>(list: &List<T>, acc: Vec<T>) -> Vec<T> {
             let (head, tail) = list.head_tail();
             if head.is_none() {
                 return acc;
@@ -53,7 +53,7 @@ impl List {
     }
 
     fn len(&self) -> usize {
-        fn len_rec(list: Option<&Box<Node>>, acc: usize) -> usize {
+        fn len_rec<T: Clone + Copy>(list: Option<&Box<Node<T>>>, acc: usize) -> usize {
             match list {
                 Some(head) => {
                     let tail = head.next.as_ref();
@@ -68,8 +68,8 @@ impl List {
     }
 }
 
-impl Iterator for List {
-    type Item = i32;
+impl<T: Clone + Copy> Iterator for List<T> {
+    type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
         let to_return = self.head.as_ref().map(|x| x.elem);
@@ -82,11 +82,11 @@ impl Iterator for List {
     }
 }
 
-fn functional_push_left(acc: Vec<i32>, elem: i32) -> Vec<i32> {
+fn functional_push_left<T>(acc: Vec<T>, elem: T) -> Vec<T> {
     [elem].into_iter().chain(acc.into_iter()).collect()
 }
 
-fn functional_push_right(acc: Vec<i32>, elem: i32) -> Vec<i32> {
+fn functional_push_right<T>(acc: Vec<T>, elem: T) -> Vec<T> {
     acc.into_iter().chain([elem].into_iter()).collect()
 }
 
@@ -119,4 +119,7 @@ fn main() {
     );
     println!("list3 len: {:?}", list3.len());
     // assert_eq!(list2.push(33), tail);
+
+    let string_list = List::new().push("hi").push("hello");
+    println!("string_list: {:?}", string_list.to_vec());
 }
