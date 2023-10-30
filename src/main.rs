@@ -1,15 +1,15 @@
 #[derive(Clone, Debug)]
-struct List<T: Clone + Copy> {
+struct List<T: Clone> {
     head: Option<Box<Node<T>>>,
 }
 
 #[derive(Clone, Debug)]
-struct Node<T: Clone + Copy> {
+struct Node<T: Clone> {
     elem: T,
     next: Option<Box<Node<T>>>,
 }
 
-impl<T: Clone + Copy> List<T> {
+impl<T: Clone> List<T> {
     fn new() -> Self {
         List { head: None }
     }
@@ -27,7 +27,7 @@ impl<T: Clone + Copy> List<T> {
     }
 
     fn head_tail(&self) -> (Option<T>, Self) {
-        let head = self.head.as_ref().map(|x| x.elem);
+        let head = self.head.as_ref().map(|x| x.elem.clone());
         let tail_head = match self.head.as_ref().map(|x| x.next.clone()) {
             Some(v) => v,
             None => None,
@@ -37,7 +37,7 @@ impl<T: Clone + Copy> List<T> {
     }
 
     fn to_vec(&self) -> Vec<T> {
-        fn to_vec_rec<T: Clone + Copy>(list: &List<T>, acc: Vec<T>) -> Vec<T> {
+        fn to_vec_rec<T: Clone>(list: &List<T>, acc: Vec<T>) -> Vec<T> {
             let (head, tail) = list.head_tail();
             if head.is_none() {
                 return acc;
@@ -53,7 +53,7 @@ impl<T: Clone + Copy> List<T> {
     }
 
     fn len(&self) -> usize {
-        fn len_rec<T: Clone + Copy>(list: Option<&Box<Node<T>>>, acc: usize) -> usize {
+        fn len_rec<T: Clone>(list: Option<&Box<Node<T>>>, acc: usize) -> usize {
             match list {
                 Some(head) => {
                     let tail = head.next.as_ref();
