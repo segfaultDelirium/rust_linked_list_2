@@ -66,7 +66,68 @@ impl<T: Clone> List<T> {
 
         len_rec(self.head.as_ref(), 0)
     }
+
+    // fn from_vec(vec: &[T]) -> Self {
+    //     fn from_vec_rec<T: Clone>(vec: &mut std::slice::Iter<T>, acc: List<T>) -> List<T> {
+    //         // let (head, tail) = head_tail(vec);
+    //         let (head, tail) = head_tail_consuming(vec);
+    //         if head.is_none() {
+    //             return acc;
+    //         }
+    //         let new_acc = acc.push(head.unwrap().clone());
+    //         from_vec_rec(&mut tail.into_iter(), new_acc)
+    //     }
+    //     from_vec_rec(&mut vec.clone().into_iter(), List::new())
+    // }
+
+    fn from_iter(iter: std::slice::Iter<T>) -> Self {
+        fn from_vec_rec<T: Clone>(vec: &mut std::slice::Iter<T>, acc: List<T>) -> List<T> {
+            // let (head, tail) = head_tail(vec);
+            let (head, tail) = head_tail_consuming(vec);
+            if head.is_none() {
+                return acc;
+            }
+            let new_acc = acc.push(head.unwrap().clone());
+            from_vec_rec(&mut tail.into_iter(), new_acc)
+        }
+        from_vec_rec(&mut iter.clone().into_iter(), List::new())
+    }
 }
+
+fn head_tail<T>(vec: std::slice::Iter<T>) -> (Option<&T>, std::slice::Iter<T>) {
+    let mut iter = vec.clone();
+    let head = iter.next();
+    let tail = iter;
+    (head, tail)
+}
+
+fn head_tail_consuming<'a, T>(iter: &'a mut std::slice::Iter<T>) -> (Option<&'a T>, &'a [T]) {
+    let head = iter.next();
+    // let tail = iter;
+    (head, iter.as_slice())
+}
+
+// fn head_tail<T>(vec: &[T]) -> (Option<&T>, std::slice::Iter<T>) {
+//     let mut iter = vec.clone().into_iter();
+//     let head = iter.next();
+//     let tail = iter;
+//     (head, tail)
+// }
+
+// impl<T: Clone + Copy> FromIterator<T> for List<T> {
+//     // type Item = T;
+//     // type IntoIter: std::vec::IntoIter<Self::Item>;
+//     // type IntoIter = IntoIterator<Item = T>;
+//     // type IntoIter = std::vec::IntoIter<T>;
+
+//     // type FromIterator =
+//     fn from_iter<I: IntoIterator<Item = T>>(iter: T) -> List<T> {
+//         fn from_iter_rec<T: Clone, I>(iter: I, acc: List<T>) -> List<T> {
+//             List::new()
+//         }
+//         from_iter_rec(iter, List::new())
+//     }
+// }
 
 impl<T: Clone + Copy> Iterator for List<T> {
     type Item = T;
@@ -88,6 +149,60 @@ fn functional_push_left<T>(acc: Vec<T>, elem: T) -> Vec<T> {
 
 fn functional_push_right<T>(acc: Vec<T>, elem: T) -> Vec<T> {
     acc.into_iter().chain([elem].into_iter()).collect()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_is_empty() {
+        let list: List<i32> = List::new();
+        let res = list.is_empty();
+        let expected = true;
+        assert_eq!(res, expected);
+    }
+
+    #[test]
+    fn test_is_empty_returns_false() {
+        let list: List<i32> = List::new().push(123);
+        let res = list.is_empty();
+        let expected = false;
+        assert_eq!(res, expected);
+    }
+
+    #[test]
+    fn test_len_empty() {
+        let list: List<i32> = List::new();
+        let res = list.len();
+        let expected = 0;
+        assert_eq!(res, expected);
+    }
+
+    #[test]
+    fn test_len_3() {
+        let list: List<i32> = List::new().push(1).push(2).push(3);
+        let res = list.len();
+        let expected = 3;
+        assert_eq!(res, expected);
+    }
+
+    #[test]
+    fn test_into_iter() {
+        let list: List<i32> = List::new().push(1).push(2).push(3);
+        let res = list.into_iter().collect::<Vec<i32>>();
+        let expected = [3, 2, 1];
+        assert_eq!(res, expected);
+    }
+
+    #[test]
+    fn test_from_vec() {
+        let input = [3, 2, 1];
+        let list: List<i32> = List::from_iter(input.iter());
+        let res: Vec<i32> = list.into_iter().collect();
+        let expected = vec![1, 2, 3];
+        assert_eq!(res, expected);
+    }
 }
 
 fn main() {
